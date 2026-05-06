@@ -1,0 +1,202 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .app { display: flex; flex-direction: column; align-items: center; padding: 2.5rem 1rem; min-height: 420px; font-family: var(--font-sans); background: #000; }
+  .tirada-num { font-size: 12px; color: #444; margin-bottom: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; }
+  .titulo { font-size: 26px; font-weight: 500; color: #fff; margin-bottom: 2.2rem; text-align: center; min-height: 40px; }
+  .slot-wrapper { position: relative; width: 280px; height: 90px; margin-bottom: 2.5rem; }
+  .slot-reel { overflow: hidden; height: 90px; border-radius: 10px; background: #0a0a0a; border: 1px solid #2a2a2a; }
+  .slot-shine-top { position: absolute; top: 0; left: 0; right: 0; height: 30px; background: linear-gradient(to bottom, #000 0%, transparent 100%); z-index: 2; pointer-events: none; border-radius: 10px 10px 0 0; }
+  .slot-shine-bot { position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: linear-gradient(to top, #000 0%, transparent 100%); z-index: 2; pointer-events: none; border-radius: 0 0 10px 10px; }
+  .reel-track { display: flex; flex-direction: column; align-items: center; will-change: transform; }
+  .reel-item { height: 90px; width: 280px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 500; color: #fff; flex-shrink: 0; }
+  .reel-item.signo { color: #333; font-size: 32px; letter-spacing: 6px; }
+  .btn-girar { background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 50px; padding: 15px 52px; font-size: 17px; font-weight: 500; color: #fff; cursor: pointer; transition: border-color 0.2s, transform 0.1s; }
+  .btn-girar:hover:not(:disabled) { border-color: #555; transform: translateY(-1px); }
+  .btn-girar:active:not(:disabled) { transform: scale(0.96); }
+  .btn-girar:disabled { opacity: 0.25; cursor: default; transform: none; }
+  .resultado-panel { margin-top: 2.2rem; width: 100%; max-width: 520px; background: #0d0d0d; border-radius: 12px; border: 1px solid #1e1e1e; padding: 1rem 1.4rem; }
+  .resultado-fila { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; }
+  .resultado-item { display: flex; gap: 5px; align-items: center; }
+  .resultado-label { color: #444; }
+  .resultado-valor { font-weight: 500; color: #fff; }
+  .resultado-valor.nuevo { animation: pulseVal 0.6s ease; }
+  @keyframes pulseVal { 0%{opacity:0} 60%{opacity:1} 100%{opacity:1} }
+  .resultado-final { width: 100%; max-width: 520px; text-align: center; animation: fadeUp 0.5s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .resultado-final-titulo { font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #444; margin-bottom: 1.6rem; }
+  .resultado-final-lista { display: flex; flex-direction: column; gap: 8px; margin-bottom: 2rem; }
+  .resultado-final-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: #0d0d0d; border-radius: 10px; border: 1px solid #1e1e1e; animation: fadeUp 0.4s ease both; }
+  .resultado-final-item:nth-child(1){animation-delay:0.05s}
+  .resultado-final-item:nth-child(2){animation-delay:0.12s}
+  .resultado-final-item:nth-child(3){animation-delay:0.19s}
+  .resultado-final-item:nth-child(4){animation-delay:0.26s}
+  .resultado-final-rol { font-size: 13px; color: #444; letter-spacing: 0.08em; }
+  .resultado-final-nombre { font-size: 22px; font-weight: 500; color: #fff; }
+  .btn-reiniciar { background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 50px; padding: 13px 38px; font-size: 15px; font-weight: 500; color: #fff; cursor: pointer; transition: border-color 0.2s, transform 0.1s; }
+  .btn-reiniciar:hover { border-color: #555; transform: translateY(-1px); }
+  .btn-reiniciar:active { transform: scale(0.97); }
+</style>
+
+<div class="app" id="app">
+  <div class="tirada-num" id="tiradaNum">Tirada 1 de 4</div>
+  <div class="titulo" id="titulo">¿Quién llama?</div>
+  <div class="slot-wrapper">
+    <div class="slot-reel">
+      <div class="reel-track" id="reelTrack">
+        <div class="reel-item signo">????????</div>
+      </div>
+    </div>
+    <div class="slot-shine-top"></div>
+    <div class="slot-shine-bot"></div>
+  </div>
+  <button class="btn-girar" id="btnGirar" onclick="girar()">Girar</button>
+  <div class="resultado-panel">
+    <div class="resultado-fila">
+      <span class="resultado-item"><span class="resultado-label">Llama:</span> <span class="resultado-valor" id="r0">—</span></span>
+      <span class="resultado-item"><span class="resultado-label">Busca:</span> <span class="resultado-valor" id="r1">—</span></span>
+      <span class="resultado-item"><span class="resultado-label">Pone mesa:</span> <span class="resultado-valor" id="r2">—</span></span>
+      <span class="resultado-item"><span class="resultado-label">Lava:</span> <span class="resultado-valor" id="r3">—</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const TIRADAS = [
+  { titulo: '¿Quién llama?',        nombres: ['Brandi','Brian','Mauro','Lu','Dolores'] },
+  { titulo: '¿Quién busca?',        nombres: ['Brandi','Brian','Mauro','Lu'] },
+  { titulo: '¿Quién pone la mesa?', nombres: ['Brandi','Brian','Mauro','Lu','Dolores'] },
+  { titulo: '¿Quién lava?',         nombres: ['Brandi','Brian','Mauro','Lu','Dolores','Ale'] },
+];
+
+let tiradaActual = 0;
+let resultados = [];
+let girando = false;
+
+function getNombresDisponibles(idx) {
+  const usados = new Set(resultados);
+  return TIRADAS[idx].nombres.filter(n => !usados.has(n));
+}
+
+function actualizarPanel(idx, nombre) {
+  const el = document.getElementById('r' + idx);
+  el.textContent = nombre;
+  el.classList.remove('nuevo');
+  void el.offsetWidth;
+  el.classList.add('nuevo');
+}
+
+function girar() {
+  if (girando) return;
+  const lista = getNombresDisponibles(tiradaActual);
+  if (!lista.length) return;
+
+  girando = true;
+  document.getElementById('btnGirar').disabled = true;
+
+  const elegido = lista[Math.floor(Math.random() * lista.length)];
+  const ITEM_H = 90;
+  const EXTRAS = 22 + Math.floor(Math.random() * 6);
+  const track = document.getElementById('reelTrack');
+
+  // Build strip: all ????????, elegido only at the very last position
+  const strip = [];
+  for (let i = 0; i < EXTRAS; i++) strip.push(null);
+  strip.push(elegido);
+
+  // Render strip — start positioned so first item is visible, elegido is far below
+  track.innerHTML = '';
+  strip.forEach((n, i) => {
+    const div = document.createElement('div');
+    if (n === null) {
+      div.className = 'reel-item signo';
+      div.textContent = '????????';
+    } else {
+      div.className = 'reel-item';
+      div.textContent = n;
+    }
+    track.appendChild(div);
+  });
+
+  // Position track so first item is centered (translateY = 0)
+  track.style.transition = 'none';
+  track.style.transform = 'translateY(0px)';
+
+  // Target: last item (elegido) centered
+  const targetY = -((strip.length - 1) * ITEM_H);
+  const duracion = 2000;
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      track.style.transition = `transform ${duracion}ms cubic-bezier(0.12, 0.9, 0.3, 1.0)`;
+      track.style.transform = `translateY(${targetY}px)`;
+    });
+  });
+
+  setTimeout(() => {
+    resultados[tiradaActual] = elegido;
+    actualizarPanel(tiradaActual, elegido);
+    girando = false;
+    tiradaActual++;
+
+    if (tiradaActual < TIRADAS.length) {
+      setTimeout(() => {
+        document.getElementById('titulo').textContent = TIRADAS[tiradaActual].titulo;
+        document.getElementById('tiradaNum').textContent = `Tirada ${tiradaActual + 1} de 4`;
+        track.style.transition = 'none';
+        track.innerHTML = '<div class="reel-item signo">????????</div>';
+        track.style.transform = 'translateY(0px)';
+        document.getElementById('btnGirar').disabled = false;
+      }, 1000);
+    } else {
+      setTimeout(() => mostrarFinal(), 1000);
+    }
+  }, duracion + 100);
+}
+
+function mostrarFinal() {
+  const roles = ['Llama','Busca','Pone mesa','Lava'];
+  document.getElementById('app').innerHTML = `
+    <div class="resultado-final">
+      <div class="resultado-final-titulo">Ronda completada</div>
+      <div class="resultado-final-lista">
+        ${roles.map((r, i) => `
+          <div class="resultado-final-item">
+            <span class="resultado-final-rol">${r}</span>
+            <span class="resultado-final-nombre">${resultados[i]}</span>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn-reiniciar" onclick="reiniciar()">Volver a empezar</button>
+    </div>
+  `;
+}
+
+function reiniciar() {
+  tiradaActual = 0;
+  resultados = [];
+  girando = false;
+  document.getElementById('app').innerHTML = `
+    <div class="tirada-num" id="tiradaNum">Tirada 1 de 4</div>
+    <div class="titulo" id="titulo">${TIRADAS[0].titulo}</div>
+    <div class="slot-wrapper">
+      <div class="slot-reel">
+        <div class="reel-track" id="reelTrack">
+          <div class="reel-item signo">????????</div>
+        </div>
+      </div>
+      <div class="slot-shine-top"></div>
+      <div class="slot-shine-bot"></div>
+    </div>
+    <button class="btn-girar" id="btnGirar" onclick="girar()">Girar</button>
+    <div class="resultado-panel">
+      <div class="resultado-fila">
+        <span class="resultado-item"><span class="resultado-label">Llama:</span> <span class="resultado-valor" id="r0">—</span></span>
+        <span class="resultado-item"><span class="resultado-label">Busca:</span> <span class="resultado-valor" id="r1">—</span></span>
+        <span class="resultado-item"><span class="resultado-label">Pone mesa:</span> <span class="resultado-valor" id="r2">—</span></span>
+        <span class="resultado-item"><span class="resultado-label">Lava:</span> <span class="resultado-valor" id="r3">—</span></span>
+      </div>
+    </div>
+  `;
+}
+</script>
