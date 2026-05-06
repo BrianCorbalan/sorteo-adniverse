@@ -1,8 +1,8 @@
 
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  .app { display: flex; flex-direction: column; align-items: center; padding: 2.5rem 1rem; min-height: 420px; font-family: var(--font-sans); background: #000; }
-  .tirada-num { font-size: 12px; color: #444; margin-bottom: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; }
+  .app { display: flex; flex-direction: column; height: 100vh; align-items: center; padding: 2.5rem 1rem; min-height: 420px; font-family: var(--font-sans); background: #000; }
+  .tirada-num { font-size: 12px; color: #7a7a7a; margin-bottom: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; }
   .titulo { font-size: 26px; font-weight: 500; color: #fff; margin-bottom: 2.2rem; text-align: center; min-height: 40px; }
   .slot-wrapper { position: relative; width: 280px; height: 90px; margin-bottom: 2.5rem; }
   .slot-reel { overflow: hidden; height: 90px; border-radius: 10px; background: #0a0a0a; border: 1px solid #2a2a2a; }
@@ -24,14 +24,14 @@
   @keyframes pulseVal { 0%{opacity:0} 60%{opacity:1} 100%{opacity:1} }
   .resultado-final { width: 100%; max-width: 520px; text-align: center; animation: fadeUp 0.5s ease; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-  .resultado-final-titulo { font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #444; margin-bottom: 1.6rem; }
+  .resultado-final-titulo { font-size: 20px; letter-spacing: 0.15em; text-transform: uppercase; color: #969696; margin-bottom: 1.6rem; }
   .resultado-final-lista { display: flex; flex-direction: column; gap: 8px; margin-bottom: 2rem; }
   .resultado-final-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: #0d0d0d; border-radius: 10px; border: 1px solid #1e1e1e; animation: fadeUp 0.4s ease both; }
   .resultado-final-item:nth-child(1){animation-delay:0.05s}
   .resultado-final-item:nth-child(2){animation-delay:0.12s}
   .resultado-final-item:nth-child(3){animation-delay:0.19s}
   .resultado-final-item:nth-child(4){animation-delay:0.26s}
-  .resultado-final-rol { font-size: 13px; color: #444; letter-spacing: 0.08em; }
+  .resultado-final-rol { font-size: 13px; color: #f0dc84; letter-spacing: 0.08em; }
   .resultado-final-nombre { font-size: 22px; font-weight: 500; color: #fff; }
   .btn-reiniciar { background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 50px; padding: 13px 38px; font-size: 15px; font-weight: 500; color: #fff; cursor: pointer; transition: border-color 0.2s, transform 0.1s; }
   .btn-reiniciar:hover { border-color: #555; transform: translateY(-1px); }
@@ -158,7 +158,7 @@ function mostrarFinal() {
   const roles = ['Llama','Busca','Pone mesa','Lava'];
   document.getElementById('app').innerHTML = `
     <div class="resultado-final">
-      <div class="resultado-final-titulo">Ronda completada</div>
+      <div class="resultado-final-titulo">Ronda completa</div>
       <div class="resultado-final-lista">
         ${roles.map((r, i) => `
           <div class="resultado-final-item">
