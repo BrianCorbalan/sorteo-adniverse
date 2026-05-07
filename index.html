@@ -1,7 +1,16 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorteo de tareas</title>
+</head>
+<body>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  .app { display: flex; flex-direction: column; height: 100vh; align-items: center; padding: 2.5rem 1rem; min-height: 420px; font-family: var(--font-sans); background: #000; }
+  html, body { height: 100%; background: #000; }
+  .app { display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: center; padding: 2.5rem 1rem; font-family: var(--font-sans); background: #000; }
   .tirada-num { font-size: 12px; color: #7a7a7a; margin-bottom: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; }
   .titulo { font-size: 26px; font-weight: 500; color: #fff; margin-bottom: 2.2rem; text-align: center; min-height: 40px; }
   .slot-wrapper { position: relative; width: 280px; height: 90px; margin-bottom: 2.5rem; }
@@ -9,7 +18,7 @@
   .slot-shine-top { position: absolute; top: 0; left: 0; right: 0; height: 30px; background: linear-gradient(to bottom, #000 0%, transparent 100%); z-index: 2; pointer-events: none; border-radius: 10px 10px 0 0; }
   .slot-shine-bot { position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: linear-gradient(to top, #000 0%, transparent 100%); z-index: 2; pointer-events: none; border-radius: 0 0 10px 10px; }
   .reel-track { display: flex; flex-direction: column; align-items: center; will-change: transform; }
-  .reel-item { height: 90px; width: 280px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 500; color: #fff; flex-shrink: 0; }
+  .reel-item { height: 90px; width: 280px; max-width: 100%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 500; color: #fff; flex-shrink: 0; }
   .reel-item.signo { color: #333; font-size: 32px; letter-spacing: 6px; }
   .btn-girar { background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 50px; padding: 15px 52px; font-size: 17px; font-weight: 500; color: #fff; cursor: pointer; transition: border-color 0.2s, transform 0.1s; }
   .btn-girar:hover:not(:disabled) { border-color: #555; transform: translateY(-1px); }
@@ -36,6 +45,24 @@
   .btn-reiniciar { background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 50px; padding: 13px 38px; font-size: 15px; font-weight: 500; color: #fff; cursor: pointer; transition: border-color 0.2s, transform 0.1s; }
   .btn-reiniciar:hover { border-color: #555; transform: translateY(-1px); }
   .btn-reiniciar:active { transform: scale(0.97); }
+
+  @media (max-width: 480px) {
+    .app { padding: 2rem 1.2rem; justify-content: center; }
+    .titulo { font-size: 22px; margin-bottom: 1.6rem; }
+    .tirada-num { font-size: 11px; }
+    .slot-wrapper { width: 100%; max-width: 320px; height: 84px; margin-bottom: 2rem; }
+    .slot-reel { height: 84px; }
+    .reel-item { height: 84px; width: 100%; font-size: 36px; }
+    .reel-item.signo { font-size: 28px; letter-spacing: 5px; }
+    .btn-girar { padding: 14px 44px; font-size: 16px; }
+    .resultado-panel { margin-top: 1.6rem; padding: 0.9rem 1rem; }
+    .resultado-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .resultado-item { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .resultado-label { font-size: 11px; color: #555; }
+    .resultado-valor { font-size: 15px; }
+    .resultado-final-nombre { font-size: 19px; }
+    .resultado-final-titulo { font-size: 16px; }
+  }
 </style>
 
 <div class="app" id="app">
@@ -104,9 +131,13 @@ function girar() {
   for (let i = 0; i < EXTRAS; i++) strip.push(null);
   strip.push(elegido);
 
-  // Render strip — start positioned so first item is visible, elegido is far below
+  // Ocultar mientras construimos el strip para que el nombre no se vea
+  track.style.opacity = '0';
+  track.style.transition = 'none';
+  track.style.transform = 'translateY(0px)';
   track.innerHTML = '';
-  strip.forEach((n, i) => {
+
+  strip.forEach((n) => {
     const div = document.createElement('div');
     if (n === null) {
       div.className = 'reel-item signo';
@@ -118,15 +149,17 @@ function girar() {
     track.appendChild(div);
   });
 
-  // Position track so first item is centered (translateY = 0)
-  track.style.transition = 'none';
-  track.style.transform = 'translateY(0px)';
-
-  // Target: last item (elegido) centered
-  const targetY = -((strip.length - 1) * ITEM_H);
   const duracion = 2000;
 
   requestAnimationFrame(() => {
+    // Leer altura real del item en runtime (puede variar en mobile)
+    const firstItem = track.querySelector('.reel-item');
+    const realH = firstItem ? firstItem.getBoundingClientRect().height : ITEM_H;
+    const targetY = -((strip.length - 1) * realH);
+
+    track.style.transform = 'translateY(0px)';
+    track.style.opacity = '1'; // mostrar recién acá, ya posicionado en el primer ítem
+
     requestAnimationFrame(() => {
       track.style.transition = `transform ${duracion}ms cubic-bezier(0.12, 0.9, 0.3, 1.0)`;
       track.style.transform = `translateY(${targetY}px)`;
@@ -200,3 +233,4 @@ function reiniciar() {
   `;
 }
 </script>
+</body></html>
